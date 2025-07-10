@@ -1,3 +1,4 @@
+// Minimal Whitelist Hook Program - Basic Foundation
 use anchor_lang::prelude::*;
 
 declare_id!("11111111111111111111111111111113");
@@ -71,7 +72,7 @@ pub mod whitelist_hook {
     }
 
     pub fn execute_transfer_hook(
-        ctx: Context<ExecuteTransferHook>,
+        _ctx: Context<ExecuteTransferHookLegacy>,
         amount: u64,
     ) -> Result<()> {
         msg!("Executing whitelist transfer hook for amount: {}", amount);
@@ -88,7 +89,9 @@ pub struct InitializeWhitelist<'info> {
     #[account(
         init,
         payer = payer,
-        space = 8 + Whitelist::INIT_SPACE
+        space = 8 + Whitelist::INIT_SPACE,
+        seeds = [b"whitelist"],
+        bump
     )]
     pub whitelist: Account<'info, Whitelist>,
     #[account(mut)]
@@ -108,15 +111,15 @@ pub struct CheckWhitelist<'info> {
     pub whitelist: Account<'info, Whitelist>,
 }
 
+// Legacy accounts
 #[derive(Accounts)]
-pub struct ExecuteTransferHook<'info> {
+pub struct ExecuteTransferHookLegacy<'info> {
     /// CHECK: This is safe
     pub source_account: UncheckedAccount<'info>,
     /// CHECK: This is safe  
     pub mint: UncheckedAccount<'info>,
     /// CHECK: This is safe
     pub destination_account: UncheckedAccount<'info>,
-    pub whitelist: Account<'info, Whitelist>,
 }
 
 #[account]

@@ -1,0 +1,8 @@
+{
+  "devnet": {
+    "token_layer": "7x8y9zA1B2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8S9",
+    "kyc_hook": "8y9zA1B2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8S9t0",
+    "whitelist_hook": "9zA1B2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8S9t0u1",
+    "hook_registry": "A1B2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8S9t0u1v2"
+  }
+}
