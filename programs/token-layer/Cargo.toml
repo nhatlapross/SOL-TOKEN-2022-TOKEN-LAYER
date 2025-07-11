@@ -1,7 +1,7 @@
 [package]
 name = "token-layer"
 version = "0.1.0"
-description = "HookSwap Token Layer"
+description = "HookSwap Token Layer - Real Token-2022"
 edition = "2021"
 
 [lib]
@@ -19,4 +19,7 @@ init-if-needed = ["anchor-lang/init-if-needed"]
 
 [dependencies]
 anchor-lang = { workspace = true, features = ["init-if-needed"] }
-anchor-spl = { workspace = true }
+anchor-spl = { workspace = true, features = ["token_2022"] }
+spl-token-2022 = { workspace = true }
+spl-associated-token-account = { workspace = true }
+spl-token = { workspace = true }

@@ -19,4 +19,5 @@ init-if-needed = ["anchor-lang/init-if-needed"]
 
 [dependencies]
 anchor-lang = { workspace = true, features = ["init-if-needed"] }
-anchor-spl = { workspace = true }
+anchor-spl = { workspace = true, features = ["token_2022"] }
+spl-token-2022 = { workspace = true }
