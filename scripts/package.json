@@ -1,0 +1,22 @@
+{
+  "name": "hookswap-scripts",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "HookSwap initialization and demo scripts",
+  "main": "initialize_devnet_system.js",
+  "scripts": {
+    "init": "ts-node --esm initialize_devnet_system.ts",
+    "init:build": "tsc initialize_devnet_system.ts && node initialize_devnet_system.js",
+    "demo": "./demo_workflow.sh"
+  },
+  "dependencies": {
+    "@coral-xyz/anchor": "^0.29.0",
+    "@solana/web3.js": "^1.87.0",
+    "@solana/spl-token": "^0.3.8",
+    "typescript": "^5.0.0",
+    "ts-node": "^10.9.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0"
+  }
+}
