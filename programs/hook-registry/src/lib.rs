@@ -4,7 +4,7 @@ use anchor_lang::solana_program::{
     program_pack::Pack,
 };
 
-declare_id!("11111111111111111111111111111114");
+declare_id!("GhQsGRQN9yGibH6F4jvnFXy7Ejbe25PWGENSPAmKGQrB");
 
 #[program]
 pub mod hook_registry {

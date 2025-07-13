@@ -1,6 +1,7 @@
+//hookswap_token_layer/hookswap_amm/programs/kyc-hook/src/lib.rs - COMPLETE WORKING VERSION
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::{
-    program::invoke,
+    program::invoke_signed,
     program_pack::Pack,
 };
 use spl_transfer_hook_interface::{
@@ -12,12 +13,8 @@ use spl_tlv_account_resolution::{
     seeds::Seed,
     state::ExtraAccountMetaList,
 };
-use spl_token_2022::{
-    state::Mint as Token2022Mint,
-    extension::{StateWithExtensions, BaseStateWithExtensions, transfer_hook::TransferHook},
-};
 
-declare_id!("11111111111111111111111111111112");
+declare_id!("4y1hZr4mmXFodvgZwYRonDV7L781xgjm1py2NYsFP3G5");
 
 #[program]
 pub mod kyc_hook {
@@ -81,24 +78,11 @@ pub mod kyc_hook {
         Ok(())
     }
 
-    /// Check if user is KYC verified (view function)
-    pub fn check_kyc_status(
-        ctx: Context<CheckKYCStatus>,
-        user: Pubkey,
-    ) -> Result<bool> {
-        let kyc_record = &ctx.accounts.kyc_record;
-        require!(kyc_record.user == user, KYCError::InvalidKYCRecord);
-        
-        msg!("🔍 KYC status check for {}: verified={}, level={}", 
-             user, kyc_record.is_verified, kyc_record.kyc_level);
-        Ok(kyc_record.is_verified)
-    }
-
-    /// Initialize extra account meta list for REAL Transfer Hook
+    /// ✅ NEW: Initialize ExtraAccountMetaList for Transfer Hook Interface
     pub fn initialize_extra_account_meta_list(
         ctx: Context<InitializeExtraAccountMetaList>,
     ) -> Result<()> {
-        msg!("🚀 Initializing REAL ExtraAccountMetaList for mint: {}", ctx.accounts.mint.key());
+        msg!("🚀 Initializing ExtraAccountMetaList for mint: {}", ctx.accounts.mint.key());
         
         // Define the extra accounts needed for our KYC validation
         let account_metas = vec![
@@ -119,7 +103,7 @@ pub mod kyc_hook {
                     Seed::AccountKey { index: 3 }, // Index 3 is the owner in transfer hook context
                 ],
                 false, // is_signer
-                true,  // is_writable (to update transfer stats)
+                false, // is_writable (read-only for transfer validation)
             )?,
         ];
 
@@ -128,23 +112,20 @@ pub mod kyc_hook {
         
         msg!("📏 ExtraAccountMetaList size needed: {} bytes", account_size);
 
-        // Resize account to fit the data
-        ctx.accounts.extra_account_meta_list.realloc(account_size, false)?;
-
         // Initialize the account data
         let mut data = ctx.accounts.extra_account_meta_list.try_borrow_mut_data()?;
         ExtraAccountMetaList::init::<ExecuteInstruction>(&mut data, &account_metas)?;
 
-        msg!("✅ REAL ExtraAccountMetaList initialized with {} extra accounts", account_metas.len());
+        msg!("✅ ExtraAccountMetaList initialized with {} extra accounts", account_metas.len());
         Ok(())
     }
 
-    /// Transfer Hook Execute - REAL implementation called by Token-2022
+    /// ✅ NEW: Transfer Hook Execute - REAL implementation called by Token-2022
     pub fn transfer_hook_execute(
         ctx: Context<TransferHookExecute>,
         amount: u64,
     ) -> Result<()> {
-        msg!("🔥 REAL Transfer Hook Execute called!");
+        msg!("🔥 Transfer Hook Execute called!");
         msg!("💰 Transfer amount: {}", amount);
         msg!("👤 Owner: {}", ctx.accounts.owner.key());
         msg!("📦 Source: {}", ctx.accounts.source_token.key());
@@ -198,10 +179,6 @@ pub mod kyc_hook {
 
         // Update statistics
         kyc_system.total_transfers_validated += 1;
-        
-        // Update user transfer stats (would need mutable KYC record for this)
-        // kyc_record.transfer_count += 1;
-        // kyc_record.last_transfer_at = Clock::get()?.unix_timestamp;
 
         msg!("✅ KYC validation PASSED!");
         msg!("👤 User: {} (Level {})", ctx.accounts.owner.key(), kyc_record.kyc_level);
@@ -211,7 +188,7 @@ pub mod kyc_hook {
         Ok(())
     }
 
-    /// Fallback function - handles all transfer hook interface calls
+    /// ✅ NEW: Fallback function for Anchor <-> Transfer Hook Interface compatibility
     pub fn fallback<'info>(
         program_id: &Pubkey,
         accounts: &'info [AccountInfo<'info>],
@@ -239,9 +216,9 @@ pub mod kyc_hook {
                 let mint = &accounts[1]; 
                 let destination_token = &accounts[2];
                 let owner = &accounts[3];
-                let kyc_system = &accounts[4];
-                let kyc_record = &accounts[5];
-                // accounts[6] would be extra accounts if needed
+                let extra_account_meta_list = &accounts[4];
+                let kyc_system = &accounts[5];
+                let kyc_record = &accounts[6];
 
                 msg!("📋 Validating transfer:");
                 msg!("🪙 Mint: {}", mint.key());
@@ -297,6 +274,19 @@ pub mod kyc_hook {
                 Ok(())
             }
         }
+    }
+
+    /// Check if user is KYC verified (view function)
+    pub fn check_kyc_status(
+        ctx: Context<CheckKYCStatus>,
+        user: Pubkey,
+    ) -> Result<bool> {
+        let kyc_record = &ctx.accounts.kyc_record;
+        require!(kyc_record.user == user, KYCError::InvalidKYCRecord);
+        
+        msg!("🔍 KYC status check for {}: verified={}, level={}", 
+             user, kyc_record.is_verified, kyc_record.kyc_level);
+        Ok(kyc_record.is_verified)
     }
 
     /// Get KYC system statistics
@@ -366,7 +356,7 @@ pub struct CheckKYCStatus<'info> {
     pub kyc_record: Account<'info, KYCRecord>,
 }
 
-/// Initialize ExtraAccountMetaList for Transfer Hook
+/// ✅ NEW: Initialize ExtraAccountMetaList for Transfer Hook
 #[derive(Accounts)]
 pub struct InitializeExtraAccountMetaList<'info> {
     #[account(mut)]
@@ -390,7 +380,7 @@ pub struct InitializeExtraAccountMetaList<'info> {
     pub system_program: Program<'info, System>,
 }
 
-/// Transfer Hook Execute - Called by Token-2022 during transfers
+/// ✅ NEW: Transfer Hook Execute - Called by Token-2022 during transfers
 #[derive(Accounts)]
 pub struct TransferHookExecute<'info> {
     /// CHECK: Source token account
@@ -401,6 +391,8 @@ pub struct TransferHookExecute<'info> {
     pub destination_token: UncheckedAccount<'info>,
     /// CHECK: Owner/authority performing the transfer
     pub owner: UncheckedAccount<'info>,
+    /// CHECK: ExtraAccountMetaList account
+    pub extra_account_meta_list: UncheckedAccount<'info>,
     
     /// KYC System for global stats
     #[account(

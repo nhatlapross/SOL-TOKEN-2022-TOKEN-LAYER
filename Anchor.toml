@@ -1,23 +1,15 @@
 [toolchain]
-package_manager = "yarn"
 
 [features]
 resolution = true
 skip-lint = false
 
-[programs.localnet]
-token_layer = "11111111111111111111111111111111"
-kyc_hook = "11111111111111111111111111111112"
-whitelist_hook = "11111111111111111111111111111113"
-hook_registry = "11111111111111111111111111111114"
-hookswap_amm = "11111111111111111111111111111115"
-
 [programs.devnet]
-token_layer = "11111111111111111111111111111111"
-kyc_hook = "11111111111111111111111111111112"
-whitelist_hook = "11111111111111111111111111111113"
-hook_registry = "11111111111111111111111111111114"
-hookswap_amm = "11111111111111111111111111111115"
+hook_registry = "GhQsGRQN9yGibH6F4jvnFXy7Ejbe25PWGENSPAmKGQrB"
+hookswap_amm = "EJCk9aNdKk21Mr3C33aYtnnuBe2vKxVm9eS3TjLWUHuB"
+kyc_hook = "4y1hZr4mmXFodvgZwYRonDV7L781xgjm1py2NYsFP3G5"
+token_layer = "HAre1abhzNrvavsA2baAStqyXFigyGdTEAVEhjXa5xu4"
+whitelist_hook = "5Husow3WjdbGmXZPd3Hdi9nkVSWcUYu3PAiPKqJuTTfo"
 
 [registry]
 url = "https://api.apr.dev"
@@ -28,17 +20,3 @@ wallet = "~/.config/solana/id.json"
 
 [scripts]
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
-
-[test]
-startup_wait = 5000
-shutdown_wait = 2000
-upgradeable = false
-
-[test.validator]
-url = "https://api.devnet.solana.com"
-
-[[test.validator.clone]]
-address = "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
-
-[[test.validator.clone]]
-address = "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"

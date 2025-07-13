@@ -8,7 +8,7 @@ use spl_tlv_account_resolution::{
     state::ExtraAccountMetaList,
 };
 
-declare_id!("11111111111111111111111111111113");
+declare_id!("5Husow3WjdbGmXZPd3Hdi9nkVSWcUYu3PAiPKqJuTTfo");
 
 #[program]
 pub mod whitelist_hook {

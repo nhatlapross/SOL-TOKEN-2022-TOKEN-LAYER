@@ -1,0 +1,46 @@
+Updating program ids...
+Found incorrect program id declaration in "/home/alvin/hookswap_token_layer/hookswap_amm/programs/token-layer/src/lib.rs"
+Updated to HAre1abhzNrvavsA2baAStqyXFigyGdTEAVEhjXa5xu4
+
+Found incorrect program id declaration in Anchor.toml for the program `token_layer`
+Updated to HAre1abhzNrvavsA2baAStqyXFigyGdTEAVEhjXa5xu4
+
+Found incorrect program id declaration in "/home/alvin/hookswap_token_layer/hookswap_amm/programs/hookswap-amm/src/lib.rs"
+Updated to EJCk9aNdKk21Mr3C33aYtnnuBe2vKxVm9eS3TjLWUHuB
+
+Found incorrect program id declaration in Anchor.toml for the program `hookswap_amm`
+Updated to EJCk9aNdKk21Mr3C33aYtnnuBe2vKxVm9eS3TjLWUHuB
+
+Found incorrect program id declaration in "/home/alvin/hookswap_token_layer/hookswap_amm/programs/kyc-hook/src/lib.rs"
+Updated to 4y1hZr4mmXFodvgZwYRonDV7L781xgjm1py2NYsFP3G5
+
+Found incorrect program id declaration in Anchor.toml for the program `kyc_hook`
+Updated to 4y1hZr4mmXFodvgZwYRonDV7L781xgjm1py2NYsFP3G5
+
+Found incorrect program id declaration in "/home/alvin/hookswap_token_layer/hookswap_amm/programs/hook-registry/src/lib.rs"
+Updated to GhQsGRQN9yGibH6F4jvnFXy7Ejbe25PWGENSPAmKGQrB
+
+Found incorrect program id declaration in Anchor.toml for the program `hook_registry`
+Updated to GhQsGRQN9yGibH6F4jvnFXy7Ejbe25PWGENSPAmKGQrB
+
+Found incorrect program id declaration in "/home/alvin/hookswap_token_layer/hookswap_amm/programs/whitelist-hook/src/lib.rs"
+Updated to 5Husow3WjdbGmXZPd3Hdi9nkVSWcUYu3PAiPKqJuTTfo
+
+Found incorrect program id declaration in Anchor.toml for the program `whitelist_hook`
+Updated to 5Husow3WjdbGmXZPd3Hdi9nkVSWcUYu3PAiPKqJuTTfo
+
+All program id declarations are synced.
+Please rebuild the program to update the generated artifacts.
+WARNING: `anchor-lang` version(0.29.0) and the current CLI version(0.31.1) don't match.
+
+	This can lead to unwanted behavior. To use the same CLI version, add:
+
+	[toolchain]
+	anchor_version = "0.29.0"
+
+	to Anchor.toml
+
+Using image "solanafoundation/anchor:v0.31.1"
+Run docker image
+Error during Docker build: Docker build failed: No such file or directory (os error 2)
+Error: Docker build failed: No such file or directory (os error 2)

@@ -12,7 +12,7 @@ use spl_token_2022::{
     extension::{StateWithExtensions, BaseStateWithExtensions},
 };
 
-declare_id!("11111111111111111111111111111115");
+declare_id!("EJCk9aNdKk21Mr3C33aYtnnuBe2vKxVm9eS3TjLWUHuB");
 
 #[program]
 pub mod hookswap_amm {

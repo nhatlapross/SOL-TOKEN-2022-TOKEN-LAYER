@@ -1,4 +1,3 @@
-// hookswap_amm/programs/token-layer/src/lib.rs - FIXED VERSION
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::{
     program::invoke,
@@ -27,7 +26,7 @@ pub mod token_layer {
         Ok(())
     }
 
-    /// Create REAL Token-2022 with Transfer Hook Extension - FIXED
+    /// Create REAL Token-2022 with Transfer Hook Extension
     pub fn create_token_2022_with_hooks(
         ctx: Context<CreateToken2022WithHooks>,
         name: String,
@@ -39,33 +38,9 @@ pub mod token_layer {
         msg!("🪙 Creating REAL Token-2022 with Transfer Hook: {} ({})", name, symbol);
         msg!("🔗 Hook Program ID: {}", hook_program_id);
         
-        // ✅ VALIDATION CHECKS
-        require!(
-            name.len() <= 50 && !name.is_empty(),
-            TokenLayerError::InvalidTokenName
-        );
-        require!(
-            symbol.len() <= 10 && !symbol.is_empty(),
-            TokenLayerError::InvalidTokenSymbol
-        );
-        require!(
-            decimals <= 9,
-            TokenLayerError::InvalidDecimals
-        );
-        require!(
-            initial_supply > 0,
-            TokenLayerError::InvalidSupply
-        );
-        
-        // ✅ Validate hook program exists (basic check)
-        if hook_program_id == Pubkey::default() {
-            return Err(TokenLayerError::InvalidHookProgram.into());
-        }
-        
         // 1. Calculate space needed for mint with Transfer Hook extension
         let transfer_hook_extension = ExtensionType::TransferHook;
-        let mint_space = ExtensionType::try_calculate_account_len::<spl_token_2022::state::Mint>(&[transfer_hook_extension])
-            .map_err(|_| TokenLayerError::ExtensionInitializationFailed)?;
+        let mint_space = ExtensionType::try_calculate_account_len::<spl_token_2022::state::Mint>(&[transfer_hook_extension])?;
         
         msg!("📏 Mint space needed: {} bytes (with extensions)", mint_space);
 
@@ -85,7 +60,7 @@ pub mod token_layer {
                 ctx.accounts.mint.to_account_info(),
                 ctx.accounts.system_program.to_account_info(),
             ],
-        ).map_err(|_| TokenLayerError::TokenCreationFailed)?;
+        )?;
 
         // 3. Initialize Transfer Hook Extension FIRST
         let init_transfer_hook_ix = initialize_transfer_hook(
@@ -93,7 +68,7 @@ pub mod token_layer {
             &ctx.accounts.mint.key(),
             Some(ctx.accounts.authority.key()),
             Some(hook_program_id),
-        ).map_err(|_| TokenLayerError::HookSetupFailed)?;
+        )?;
 
         invoke(
             &init_transfer_hook_ix,
@@ -101,7 +76,7 @@ pub mod token_layer {
                 ctx.accounts.mint.to_account_info(),
                 ctx.accounts.token_2022_program.to_account_info(),
             ],
-        ).map_err(|_| TokenLayerError::HookSetupFailed)?;
+        )?;
 
         // 4. Initialize the mint
         let init_mint_ix = initialize_mint2(
@@ -110,7 +85,7 @@ pub mod token_layer {
             &ctx.accounts.authority.key(),
             Some(&ctx.accounts.authority.key()), // freeze authority
             decimals,
-        ).map_err(|_| TokenLayerError::TokenCreationFailed)?;
+        )?;
 
         invoke(
             &init_mint_ix,
@@ -119,7 +94,7 @@ pub mod token_layer {
                 ctx.accounts.rent.to_account_info(),
                 ctx.accounts.token_2022_program.to_account_info(),
             ],
-        ).map_err(|_| TokenLayerError::TokenCreationFailed)?;
+        )?;
 
         // 5. Store token metadata
         let token_info = &mut ctx.accounts.token_info;
@@ -139,20 +114,10 @@ pub mod token_layer {
         msg!("🔗 Transfer Hook: {}", hook_program_id);
         msg!("📊 Decimals: {}, Initial Supply: {}", decimals, initial_supply);
         
-        // ✅ Emit event for indexing
-        emit!(TokenCreatedEvent {
-            mint: ctx.accounts.mint.key(),
-            name: name,
-            symbol: symbol,
-            creator: ctx.accounts.authority.key(),
-            hook_program_id: Some(hook_program_id),
-            timestamp: Clock::get()?.unix_timestamp,
-        });
-        
         Ok(())
     }
 
-    /// Create basic Token-2022 without hooks - FIXED
+    /// Create basic Token-2022 without hooks
     pub fn create_basic_token_2022(
         ctx: Context<CreateBasicToken2022>,
         name: String,
@@ -161,24 +126,6 @@ pub mod token_layer {
         initial_supply: u64,
     ) -> Result<()> {
         msg!("🪙 Creating basic REAL Token-2022: {} ({})", name, symbol);
-        
-        // ✅ VALIDATION CHECKS
-        require!(
-            name.len() <= 50 && !name.is_empty(),
-            TokenLayerError::InvalidTokenName
-        );
-        require!(
-            symbol.len() <= 10 && !symbol.is_empty(),
-            TokenLayerError::InvalidTokenSymbol
-        );
-        require!(
-            decimals <= 9,
-            TokenLayerError::InvalidDecimals
-        );
-        require!(
-            initial_supply > 0,
-            TokenLayerError::InvalidSupply
-        );
         
         // 1. Calculate space needed for basic mint
         let mint_space = spl_token_2022::state::Mint::LEN;
@@ -199,7 +146,7 @@ pub mod token_layer {
                 ctx.accounts.mint.to_account_info(),
                 ctx.accounts.system_program.to_account_info(),
             ],
-        ).map_err(|_| TokenLayerError::TokenCreationFailed)?;
+        )?;
 
         // 3. Initialize the mint
         let init_mint_ix = initialize_mint2(
@@ -208,7 +155,7 @@ pub mod token_layer {
             &ctx.accounts.authority.key(),
             Some(&ctx.accounts.authority.key()),
             decimals,
-        ).map_err(|_| TokenLayerError::TokenCreationFailed)?;
+        )?;
 
         invoke(
             &init_mint_ix,
@@ -217,7 +164,7 @@ pub mod token_layer {
                 ctx.accounts.rent.to_account_info(),
                 ctx.accounts.token_2022_program.to_account_info(),
             ],
-        ).map_err(|_| TokenLayerError::TokenCreationFailed)?;
+        )?;
 
         // 4. Store metadata
         let token_info = &mut ctx.accounts.token_info;
@@ -233,17 +180,6 @@ pub mod token_layer {
         token_info.token_program_id = spl_token_2022::id();
 
         msg!("✅ Basic Token-2022 created successfully!");
-        
-        // ✅ Emit event
-        emit!(TokenCreatedEvent {
-            mint: ctx.accounts.mint.key(),
-            name: name,
-            symbol: symbol,
-            creator: ctx.accounts.authority.key(),
-            hook_program_id: None,
-            timestamp: Clock::get()?.unix_timestamp,
-        });
-        
         Ok(())
     }
 
@@ -270,7 +206,7 @@ pub mod token_layer {
                 ctx.accounts.system_program.to_account_info(),
                 ctx.accounts.token_2022_program.to_account_info(),
             ],
-        ).map_err(|_| TokenLayerError::TokenCreationFailed)?;
+        )?;
 
         msg!("✅ Associated Token Account created: {}", ctx.accounts.associated_token.key());
         Ok(())
@@ -283,11 +219,6 @@ pub mod token_layer {
     ) -> Result<()> {
         msg!("🔨 Minting {} tokens", amount);
         
-        require!(
-            amount > 0,
-            TokenLayerError::InvalidSupply
-        );
-        
         let mint_to_ix = mint_to(
             &spl_token_2022::id(),
             &ctx.accounts.mint.key(),
@@ -295,7 +226,7 @@ pub mod token_layer {
             &ctx.accounts.authority.key(),
             &[],
             amount,
-        ).map_err(|_| TokenLayerError::TokenCreationFailed)?;
+        )?;
 
         invoke(
             &mint_to_ix,
@@ -305,42 +236,51 @@ pub mod token_layer {
                 ctx.accounts.authority.to_account_info(),
                 ctx.accounts.token_2022_program.to_account_info(),
             ],
-        ).map_err(|_| TokenLayerError::TokenCreationFailed)?;
+        )?;
 
-        msg!("✅ {} tokens minted successfully", amount);
+        msg!("✅ Minted {} tokens successfully", amount);
         Ok(())
     }
 
-    /// Check if mint has transfer hook extensions - IMPROVED
+    /// Check if mint has transfer hooks (simplified version)
     pub fn check_transfer_hook_extension(
         ctx: Context<CheckTransferHookExtension>,
     ) -> Result<bool> {
-        let mint_info = ctx.accounts.mint.to_account_info();
-        let mint_data = mint_info.data.borrow();
+        msg!("🔍 Checking Transfer Hook extension for mint: {}", ctx.accounts.mint.key());
         
-        if mint_data.len() > spl_token_2022::state::Mint::LEN {
-            msg!("✅ Extensions detected, checking for Transfer Hook...");
+        // Read mint account data
+        let mint_account_info = &ctx.accounts.mint;
+        let mint_data = mint_account_info.try_borrow_data()?;
+        
+        // Simple check: if account data is larger than basic mint, likely has extensions
+        let basic_mint_size = spl_token_2022::state::Mint::LEN;
+        let has_extensions = mint_data.len() > basic_mint_size;
+        
+        if has_extensions {
+            msg!("✅ Extensions detected - likely has Transfer Hook");
             
+            // Try to parse as StateWithExtensions
             match StateWithExtensions::<spl_token_2022::state::Mint>::unpack(&mint_data) {
                 Ok(mint_with_extensions) => {
-                    if let Ok(transfer_hook) = mint_with_extensions.get_extension::<TransferHook>() {
-                        msg!("🔗 Transfer Hook found!");
-                        msg!("   Program ID: {:?}", transfer_hook.program_id);
-                        msg!("   Authority: {:?}", transfer_hook.authority);
+                    let has_transfer_hook = mint_with_extensions.get_extension::<TransferHook>().is_ok();
+                    
+                    if has_transfer_hook {
+                        let transfer_hook = mint_with_extensions.get_extension::<TransferHook>()?;
+                        msg!("🔗 Transfer Hook found:");
+                        msg!("🔗 Hook Program: {:?}", transfer_hook.program_id);
+                        msg!("👤 Authority: {:?}", transfer_hook.authority);
                         return Ok(true);
-                    } else {
-                        msg!("⚠️  Other extensions found, but no Transfer Hook");
                     }
                 }
-                Err(e) => {
-                    msg!("⚠️  Could not parse extensions: {:?}", e);
+                Err(_) => {
+                    msg!("⚠️  Could not parse extensions, but extensions exist");
                 }
             }
         } else {
             msg!("❌ No extensions found");
         }
         
-        Ok(false)
+        Ok(has_extensions)
     }
 
     /// Get comprehensive token information
@@ -362,20 +302,17 @@ pub mod token_layer {
     }
 }
 
-// ========== ACCOUNT STRUCTURES - FIXED ==========
+// ========== ACCOUNT STRUCTURES ==========
 
 #[derive(Accounts)]
 pub struct Initialize {}
 
 #[derive(Accounts)]
-#[instruction(name: String)]
 pub struct CreateToken2022WithHooks<'info> {
     #[account(
         init,
         payer = payer,
         space = 8 + TokenInfo::SPACE,
-        seeds = [b"token_info", mint.key().as_ref()],
-        bump
     )]
     pub token_info: Account<'info, TokenInfo>,
     
@@ -395,14 +332,11 @@ pub struct CreateToken2022WithHooks<'info> {
 }
 
 #[derive(Accounts)]
-#[instruction(name: String)]
 pub struct CreateBasicToken2022<'info> {
     #[account(
         init,
         payer = payer,
         space = 8 + TokenInfo::SPACE,
-        seeds = [b"token_info", mint.key().as_ref()],
-        bump
     )]
     pub token_info: Account<'info, TokenInfo>,
     
@@ -461,14 +395,10 @@ pub struct CheckTransferHookExtension<'info> {
 
 #[derive(Accounts)]
 pub struct GetTokenInfo<'info> {
-    #[account(
-        seeds = [b"token_info", token_info.mint.as_ref()],
-        bump
-    )]
     pub token_info: Account<'info, TokenInfo>,
 }
 
-// ========== DATA STRUCTURES - FIXED ==========
+// ========== DATA STRUCTURES ==========
 
 #[account]
 pub struct TokenInfo {
@@ -488,20 +418,6 @@ impl TokenInfo {
     pub const SPACE: usize = 54 + 14 + 1 + 32 + 33 + 8 + 32 + 8 + 1 + 32; // 215 bytes
 }
 
-// ========== EVENTS - NEW ==========
-
-#[event]
-pub struct TokenCreatedEvent {
-    pub mint: Pubkey,
-    pub name: String,
-    pub symbol: String,
-    pub creator: Pubkey,
-    pub hook_program_id: Option<Pubkey>,
-    pub timestamp: i64,
-}
-
-// ========== ERRORS - IMPROVED ==========
-
 #[error_code]
 pub enum TokenLayerError {
     #[msg("Invalid token program ID")]
@@ -516,12 +432,4 @@ pub enum TokenLayerError {
     ExtensionInitializationFailed,
     #[msg("Failed to parse mint extensions")]
     ExtensionParsingFailed,
-    #[msg("Invalid token name")]
-    InvalidTokenName,
-    #[msg("Invalid token symbol")]
-    InvalidTokenSymbol,
-    #[msg("Invalid decimals")]
-    InvalidDecimals,
-    #[msg("Invalid supply amount")]
-    InvalidSupply,
 }
